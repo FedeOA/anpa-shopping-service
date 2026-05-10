@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.github.sanchezih.shopping.model.Product;
 
-@FeignClient(name = "anpa-product-service", url = "http://localhost:8092", path = "/api/v1/products")
+@FeignClient(name = "anpa-product-service", path = "/api/v1/products")
 public interface ProductClient {
 
 	@GetMapping(value = "/{id}")

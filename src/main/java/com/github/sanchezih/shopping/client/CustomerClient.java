@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.github.sanchezih.shopping.model.Customer;
 
-@FeignClient(name = "anpa-customer-service", url = "http://localhost:8091", path = "/api/v1/customers")
+@FeignClient(name = "anpa-customer-service", path = "/api/v1/customers")
 public interface CustomerClient {
 
 	@GetMapping(value = "/{id}")
