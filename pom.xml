@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.github.sanchezih</groupId>
 	<artifactId>anpa-shopping-service</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<name>anpa-shopping-service</name>
 	<description>Demo project for Spring Boot</description>
 	<url />
@@ -32,6 +32,14 @@
 		<spring-cloud.version>2025.0.0</spring-cloud.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
