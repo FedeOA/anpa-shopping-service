@@ -3,6 +3,9 @@ package com.github.sanchezih.shopping.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.sanchezih.shopping.client.CustomerFallback;
+import com.github.sanchezih.shopping.client.ProductFallback;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 
 import com.github.sanchezih.shopping.client.CustomerClient;
@@ -22,15 +25,22 @@ public class InvoiceServiceImpl implements InvoiceService {
 	private final InvoiceRepository invoiceRepository;
 	private final CustomerClient customerClient;
 	private final ProductClient productClient;
+	private final CustomerFallback customerFallback;
+	private CircuitBreakerFactory<?, ?> circuitBreakerFactory;
+	private final ProductFallback productFallback;
 
 	/*----------------------------------------------------------------------------*/
 
 	public InvoiceServiceImpl(InvoiceRepository invoiceRepository, CustomerClient customerClient,
-			ProductClient productClient) {
+							  ProductFallback productFallback, ProductClient productClient, CustomerFallback customerFallback,
+							  CircuitBreakerFactory<?, ?> circuitBreakerFactory) {
 		this.invoiceRepository = invoiceRepository;
 		this.customerClient = customerClient;
 		this.productClient = productClient;
-	}
+		this.customerFallback = customerFallback;
+		this.circuitBreakerFactory = circuitBreakerFactory;
+		this.productFallback = productFallback;
+    }
 
 	/*----------------------------------------------------------------------------*/
 
@@ -84,12 +94,21 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public Invoice getInvoice(Long id) {
 		Invoice invoice = invoiceRepository.findById(id).orElse(null);
 
-		if (null != invoice) {
-			Customer customer = customerClient.getCustomer(invoice.getCustomerId()).getBody();
+		if (invoice != null) {
+
+			// Circuit Breaker sobre la llamada al cliente Feign
+			Customer customer = circuitBreakerFactory.create("customerCircuitBreaker").run(
+					() -> customerClient.getCustomer(invoice.getCustomerId()).getBody(), customerFallback::fallback);
+
 			invoice.setCustomer(customer);
 
 			List<InvoiceItem> listItem = invoice.getItems().stream().map(invoiceItem -> {
-				Product product = productClient.getProduct(invoiceItem.getProductId()).getBody();
+
+				// Circuit Breaker sobre la llamada al cliente Feign
+				Product product = circuitBreakerFactory.create("productCircuitBreaker").run(
+						() -> productClient.getProduct(invoiceItem.getProductId()).getBody(),
+						productFallback::fallback);
+
 				invoiceItem.setProduct(product);
 				return invoiceItem;
 			}).collect(Collectors.toList());
